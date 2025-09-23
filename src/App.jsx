@@ -1,23 +1,31 @@
 import React, { useEffect, useState } from "react";
 import 'animate.css';
-import { Badge, Button, Card, DatePicker, Form, Input, Modal, Select, Tag } from "antd";
-import { Plus } from "lucide-react";
+import { Badge, Button, Card, DatePicker, Empty, Form, Input, Modal, Popconfirm, Select, Tag } from "antd";
+import { Plus,Trash2 } from "lucide-react";
 import '@ant-design/v5-patch-for-react-19';
 import { usePlanner } from "./store/usePlanner";
+import moment from "moment";
 
+const desc = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
 const App  = () =>{
 
   const [form] = Form.useForm()
   const [open,setOpen] = useState(false)
   const [time,setTime] = useState(new Date().toLocaleTimeString())
-  const {tasks,addTasks} = usePlanner()
+  const {tasks,addTasks, deleteTask, updateTasks, deleteAllTasks} = usePlanner()
+  const highestTasks = tasks.filter((item)=>item.priority === "highest")
+  const lowestTasks = tasks.filter((item)=>item.priority === "lowest")
+  const mediumTasks = tasks.filter((item)=>item.priority === "medium")
 
   const createTask= (value)=>{
     value.status = "pending"
+    value.id =Date.now()
+    value.createdAt = new Date()
     addTasks(value)
     handleClose()
    
   }
+  
 
   const handleClose = ()=>{
     setOpen(false)
@@ -49,6 +57,13 @@ const App  = () =>{
               <Plus className="w-4 h-4"/>
               Add Task
             </button>
+            <Popconfirm title = "Are you sure to delete all tasks ?" onConfirm={deleteAllTasks}>
+               <button className="focus:shadow-lg hover:scale-105 transform-transition duration-300 items-center text-sm py-2 px-3 rounded bg-gradient-to-tr from-rose-600 via-red-500 to-rose-600 text-white flex gap-1 font-medium">
+              <Trash2 className="w-4 h-4" />
+              Delete all Task
+            </button> 
+            </Popconfirm>
+            
         </div>
 
       </nav>
@@ -62,8 +77,25 @@ const App  = () =>{
             
            
             <div className="flex flex-col gap-8">
+            {
+              highestTasks.length === 0 &&
+              (
+                <>
+                 
+                 <Empty description="No task found !" />
+
+                 <button onClick={()=>setOpen(true)} className="w-fit mx-auto focus:shadow-lg hover:scale-105 transform-transition duration-300 items-center text-sm py-2 px-3 rounded bg-gradient-to-tr from-blue-600 via-blue-500 to-blue-600 text-white flex gap-1 font-medium">
+                 <Plus className="w-4 h-4"/>
+                 Add Task
+                 </button>
+
+                 </>
+                
+              )
+              
+            }
               {
-                tasks.filter((item)=>item.priority === "highest").map((item,index)=>(
+                highestTasks.map((item,index)=>(
                   <Card key={index} hoverable>
                   <Card.Meta
                   title={item.title}
@@ -71,16 +103,31 @@ const App  = () =>{
                   />
                   <div className="mt-4 flex justify-between items-center">
                     <div>
-                    <Tag className="!capitalize">{item.status}</Tag>
+                       
+                   {
+                        item.status === "pending" &&
+                          <Tag className="!capitalize" color="magenta">{item.status}</Tag>
+                      }
+                       {
+                        item.status === "inprogress" &&
+                          <Tag className="!capitalize" color="geekblue">{item.status}</Tag>
+                      }
+                       {
+                        item.status === "completed" &&
+                          <Tag className="!capitalize" color="green">{item.status}</Tag>
+                      }
+                    <Popconfirm title = "Are you sure to delete this task ?" onConfirm={()=>deleteTask(item.id)}>
                     <Tag className="!bg-rose-500 !border-rose-500 !text-white">Delete</Tag>
+                    </Popconfirm>
                     </div>
                     
-                    <Select size="small" placeholder="Change Status">
+                    <Select size="small" placeholder="Change Status" onChange={(statusValue)=>updateTasks(item.id, statusValue)}>
                       <Select.Option value="pending">Pending</Select.Option>
                       <Select.Option value="inprogress">Inprogress</Select.Option>
                       <Select.Option value="completed">Completed</Select.Option>
                     </Select>
                   </div>
+                   <label className="text-gray-600 text-xs flex justify mt-3">{moment(item.createdAt).format('DD MMM YYYY hh:mm A')}</label>
                 </Card>
                 ))
               }
@@ -100,8 +147,26 @@ const App  = () =>{
             
             <div className="flex flex-col gap-8">
 
+               {
+              mediumTasks.length === 0 &&
+              (
+                <>
+                 
+                 <Empty description="No task found !" />
+
+                 <button onClick={()=>setOpen(true)} className="w-fit mx-auto focus:shadow-lg hover:scale-105 transform-transition duration-300 items-center text-sm py-2 px-3 rounded bg-gradient-to-tr from-blue-600 via-blue-500 to-blue-600 text-white flex gap-1 font-medium">
+                 <Plus className="w-4 h-4"/>
+                 Add Task
+                 </button>
+
+                 </>
+                
+              )
+              
+            }
+
                 {
-                tasks.filter((item)=>item.priority === "medium").map((item,index)=>(
+                  mediumTasks.map((item,index)=>(
                   <Card key={index} hoverable>
                   <Card.Meta
                   title={item.title}
@@ -109,16 +174,30 @@ const App  = () =>{
                   />
                   <div className="mt-4 flex justify-between items-center">
                     <div>
-                    <Tag className="!capitalize">{item.status}</Tag>
+                  {
+                        item.status === "pending" &&
+                          <Tag className="!capitalize" color="magenta">{item.status}</Tag>
+                      }
+                       {
+                        item.status === "inprogress" &&
+                          <Tag className="!capitalize" color="geekblue">{item.status}</Tag>
+                      }
+                       {
+                        item.status === "completed" &&
+                          <Tag className="!capitalize" color="green">{item.status}</Tag>
+                      }
+                  <Popconfirm title = "Are you sure to delete this task ?" onConfirm={()=>deleteTask(item.id)}>
                     <Tag className="!bg-rose-500 !border-rose-500 !text-white">Delete</Tag>
+                    </Popconfirm>
                     </div>
                     
-                    <Select size="small" placeholder="Change Status">
+                    <Select size="small" placeholder="Change Status" onChange={(statusValue)=>updateTasks(item.id, statusValue)}>
                       <Select.Option value="pending">Pending</Select.Option>
                       <Select.Option value="inprogress">Inprogress</Select.Option>
                       <Select.Option value="completed">Completed</Select.Option>
                     </Select>
                   </div>
+                  <label className="text-gray-600 text-xs flex justify mt-3">{moment(item.createdAt).format('DD MMM YYYY hh:mm A')}</label>
                 </Card>
                 ))
                 }
@@ -139,8 +218,28 @@ const App  = () =>{
             
            
             <div className="flex flex-col gap-8">
+               
+                {
+              lowestTasks.length === 0 &&
+              (
+                <>
+                 
+                 <Empty description="No task found !" />
+
+                 <button onClick={()=>setOpen(true)} className="w-fit mx-auto focus:shadow-lg hover:scale-105 transform-transition duration-300 items-center text-sm py-2 px-3 rounded bg-gradient-to-tr from-blue-600 via-blue-500 to-blue-600 text-white flex gap-1 font-medium">
+                 <Plus className="w-4 h-4"/>
+                 Add Task
+                 </button>
+
+                 </>
+                
+              )
+              
+            }
+           
+
                {
-                tasks.filter((item)=>item.priority === "lowest").map((item,index)=>(
+                lowestTasks.map((item,index)=>(
                   <Card key={index} hoverable>
                   <Card.Meta
                   title={item.title}
@@ -148,16 +247,30 @@ const App  = () =>{
                   />
                   <div className="mt-4 flex justify-between items-center">
                     <div>
-                    <Tag className="!capitalize">{item.status}</Tag>
+                    {
+                        item.status === "pending" &&
+                          <Tag className="!capitalize" color="magenta">{item.status}</Tag>
+                      }
+                       {
+                        item.status === "inprogress" &&
+                          <Tag className="!capitalize" color="geekblue">{item.status}</Tag>
+                      }
+                       {
+                        item.status === "completed" &&
+                          <Tag className="!capitalize" color="green">{item.status}</Tag>
+                      }
+                    <Popconfirm title = "Are you sure to delete this task ?" onConfirm={()=>deleteTask(item.id)}>
                     <Tag className="!bg-rose-500 !border-rose-500 !text-white">Delete</Tag>
+                    </Popconfirm>
                     </div>
                     
-                    <Select size="small" placeholder="Change Status">
+                    <Select size="small" placeholder="Change Status" onChange={(statusValue)=>updateTasks(item.id, statusValue)}>
                       <Select.Option value="pending">Pending</Select.Option>
                       <Select.Option value="inprogress">Inprogress</Select.Option>
                       <Select.Option value="completed">Completed</Select.Option>
                     </Select>
                   </div>
+                  <label className="text-gray-600 text-xs flex justify mt-3">{moment(item.createdAt).format('DD MMM YYYY hh:mm A')}</label>
                 </Card>
                 ))
                 }
@@ -172,12 +285,12 @@ const App  = () =>{
       </section>
 
       <footer className="bg-gradient-to-l from-rose-500 via-slate-800 to slate-900 text-white h-[60px] fixed bottom-0 left-0 w-full flex items-center justify-between px-8">
-         <h1 className="text-2xl font-bold">Total Tasks - 22</h1>
+         <h1 className="text-2xl font-bold">Total Tasks - {tasks.length}</h1>
          <a href="#" className="hover:underline"> Devaman</a>
       </footer>
       <Modal open={open} footer={null} onCancel={handleClose} maskClosable={false}>
         <h1 className="text-lg font-medium mb-3">New Task</h1>
-        <Form onFinish={createTask} form={form}>
+        <Form onFinish={createTask} form={form} initialValues={{description:desc}}>
           <Form.Item
           name="title"
           rules={[{required:true}]}
