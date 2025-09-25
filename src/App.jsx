@@ -12,10 +12,26 @@ const App  = () =>{
   const [form] = Form.useForm()
   const [open,setOpen] = useState(false)
   const [time,setTime] = useState(new Date().toLocaleTimeString())
+  
   const {tasks,addTasks, deleteTask, updateTasks, deleteAllTasks} = usePlanner()
-  const highestTasks = tasks.filter((item)=>item.priority === "highest")
-  const lowestTasks = tasks.filter((item)=>item.priority === "lowest")
-  const mediumTasks = tasks.filter((item)=>item.priority === "medium")
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [filteredTask, setFilteredTasks] = useState(tasks)
+
+    useEffect(()=>{
+  const interval = setInterval(()=>{
+    setTime(new Date().toLocaleTimeString())
+  },1000)
+  return()=>{
+    clearInterval(interval)
+  }
+ 
+  },[])
+
+
+
+  const highestTasks = filteredTask.filter((item)=>item.priority === "highest")
+  const lowestTasks = filteredTask.filter((item)=>item.priority === "lowest")
+  const mediumTasks = filteredTask.filter((item)=>item.priority === "medium")
 
   const createTask= (value)=>{
     value.status = "pending"
@@ -25,6 +41,20 @@ const App  = () =>{
     handleClose()
    
   }
+
+
+    const handleFilter = (date,dateString) => {
+    const formattedDate = moment(dateString).format("DD-MM-YYYY");
+
+
+    const tasksForDate = formattedDate ? tasks.filter(
+          (task) =>
+            moment(task.createdAt).format("DD-MM-YYYY") === formattedDate
+        )
+      : tasks;
+
+    setFilteredTasks(tasksForDate); 
+  }
   
 
   const handleClose = ()=>{
@@ -33,14 +63,7 @@ const App  = () =>{
 
   }
 
-  useEffect(()=>{
-  const interval = setInterval(()=>{
-    setTime(new Date().toLocaleTimeString())
-  },1000)
-  return()=>{
-    clearInterval(interval)
-  }
-  },[])
+
 
   return(
     <div className="bg-gray-200 h-screen overflow-hidden">
@@ -52,7 +75,7 @@ const App  = () =>{
         <div className="flex gap-5 items-center">
          
         <h1 className="text-2xl font-bold lg:block hidden">{time}</h1>
-         <DatePicker className="!py-1.5" />
+         <DatePicker className="!py-1.5" value={selectedDate} onChange={(date,dateString) => handleFilter(date,dateString)} />
          <button onClick={()=>setOpen(true)} className="focus:shadow-lg hover:scale-105 transform-transition duration-300 items-center text-sm py-2 px-3 rounded bg-gradient-to-tr from-blue-600 via-blue-500 to-blue-600 text-white flex gap-1 font-medium">
               <Plus className="w-4 h-4"/>
               Add Task

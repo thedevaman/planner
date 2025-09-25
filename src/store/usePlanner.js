@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import moment from "moment";
 
 export const usePlanner = create(persist(
    (set)=>({
@@ -22,15 +23,8 @@ export const usePlanner = create(persist(
      deleteAllTasks:()=>set(()=>({
       tasks:[]
     })),
-    datewiseAllTasks:(date)=>set(()=>({
-        tasks:state.tasks.filter((tasks)=>{
 
-            if(tasks.createdAt.format(DD-mm-YYY) === date)
-                tasks.status = status
-            return tasks    
-    })
-        
-    }))
+  
 
     }),
     {name:"planner"}
