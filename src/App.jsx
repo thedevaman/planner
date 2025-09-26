@@ -5,6 +5,7 @@ import { Plus,Trash2 } from "lucide-react";
 import '@ant-design/v5-patch-for-react-19';
 import { usePlanner } from "./store/usePlanner";
 import moment from "moment";
+import dayjs from "dayjs";
 
 const desc = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
 const App  = () =>{
@@ -14,7 +15,7 @@ const App  = () =>{
   const [time,setTime] = useState(new Date().toLocaleTimeString())
   
   const {tasks,addTasks, deleteTask, updateTasks, deleteAllTasks} = usePlanner()
-  const [selectedDate, setSelectedDate] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(dayjs())
   const [filteredTask, setFilteredTasks] = useState(tasks)
 
     useEffect(()=>{
@@ -45,8 +46,7 @@ const App  = () =>{
 
     const handleFilter = (date,dateString) => {
     const formattedDate = moment(dateString).format("DD-MM-YYYY");
-
-
+    setSelectedDate(dateString || null)
     const tasksForDate = formattedDate ? tasks.filter(
           (task) =>
             moment(task.createdAt).format("DD-MM-YYYY") === formattedDate
@@ -75,7 +75,7 @@ const App  = () =>{
         <div className="flex gap-5 items-center">
          
         <h1 className="text-2xl font-bold lg:block hidden">{time}</h1>
-         <DatePicker className="!py-1.5" value={selectedDate} onChange={(date,dateString) => handleFilter(date,dateString)} />
+         <DatePicker className="!py-1.5"  value={selectedDate ? dayjs(selectedDate) : null} onChange={(date,dateString) => handleFilter(date,dateString)} />
          <button onClick={()=>setOpen(true)} className="focus:shadow-lg hover:scale-105 transform-transition duration-300 items-center text-sm py-2 px-3 rounded bg-gradient-to-tr from-blue-600 via-blue-500 to-blue-600 text-white flex gap-1 font-medium">
               <Plus className="w-4 h-4"/>
               Add Task
